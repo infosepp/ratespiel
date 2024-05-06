@@ -10,7 +10,7 @@ import java.net.*;
 public class SpielServer extends Server {
 
     private HighscoreGateway DBhighscore;
-    private List<Spiel> spieleOnline;
+    private List<Spiel> spieleOnline; 
     
     public SpielServer(int p) {
         super(p);
