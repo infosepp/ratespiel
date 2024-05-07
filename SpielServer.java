@@ -162,7 +162,15 @@ public class SpielServer extends Server {
      */
     private synchronized String gibNameVonSpiel(String pClientIP)
     {
-        // Hier die Methode implementieren
+        spieleOnline.toFirst();
+        while (spieleOnline.hasAccess()) {
+            if (spieleOnline.getContent().gibClientIP() == pClientIP) {
+                return spieleOnline.getContent().gibName();
+            } else {
+                spieleOnline.next();
+            }
+        }
+        return "Fehler!";
     }
     
     /**
