@@ -160,7 +160,14 @@ public class SpielServer extends Server {
      */
     private synchronized void loescheOnlineSpiel(String pClientIP, int pClientPort)
     {
-        // Hier die Methode implementieren
+        spieleOnline.toFirst();
+        while (spieleOnline.hasAccess()) {
+            if (spieleOnline.getContent().gibClientIP() == pClientIP) {
+                spieleOnline.remove();
+            } else {
+                spieleOnline.next();
+            }
+        }
     }
     
     /**
