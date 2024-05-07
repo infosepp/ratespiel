@@ -108,7 +108,15 @@ public class SpielServer extends Server {
      */
     private synchronized int gibZahlVonSpiel(String pClientIP)
     {
-        // Hier die Methode implementieren
+        spieleOnline.toFirst();
+        while (spieleOnline.hasAccess()) {
+            if (spieleOnline.getContent().gibClientIP() == pClientIP) {
+                return spieleOnline.getContent().gibZahl();
+            } else {
+                spieleOnline.next();
+            }
+        }
+        return -1;
     }
     
     /**
@@ -118,7 +126,15 @@ public class SpielServer extends Server {
      */
     private synchronized int gibVersucheVonSpiel(String pClientIP)
     {
-        // Hier die Methode implementieren
+        spieleOnline.toFirst();
+        while (spieleOnline.hasAccess()) {
+            if (spieleOnline.getContent().gibClientIP() == pClientIP) {
+                return spieleOnline.getContent().gibVersuche();
+            } else {
+                spieleOnline.next();
+            }
+        }
+        return -1;
     }
     
     /**
@@ -154,7 +170,15 @@ public class SpielServer extends Server {
      */
     private synchronized String gibNameVonSpiel(String pClientIP)
     {
-        // Hier die Methode implementieren
+        spieleOnline.toFirst();
+        while (spieleOnline.hasAccess()) {
+            if (spieleOnline.getContent().gibClientIP() == pClientIP) {
+                return spieleOnline.getContent().gibName();
+            } else {
+                spieleOnline.next();
+            }
+        }
+        return "Fehler!";
     }
     
     /**
