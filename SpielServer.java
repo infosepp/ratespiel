@@ -198,6 +198,10 @@ public class SpielServer extends Server {
      */
     private String generiereStringAusList(List<Eintrag> l)
     {
-        // Hier die Methode implementieren
+        String ausgabe = null;
+        l.toFirst();
+        while(l.hasAccess()){
+            ausgabe = ausgabe + l.getContent().gibName() + ":" + l.getContent().gibPunkte(). + " ";
+        }
     }
 }
