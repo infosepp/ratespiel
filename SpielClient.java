@@ -18,10 +18,57 @@ public class SpielClient extends Client {
     public void processMessage(String message){
         switch(gibBefehlsbereich(message))
         {
-            // Hier muss das Protokoll umgesetzt werden
+            case "+OK":
+            {
+                System.out.println(gibTextbereich(message));
+                break;
+            }
+            
+            case "FLS":
+            {
+                System.out.println(gibTextbereich(message));
+                break;
+            }
+            
+            case "TRU":
+            {
+                System.out.println(gibTextbereich(message));
+                break;
+            }
+                
+            case "GHC":
+            {
+                highscorelisteDrucken(message);
+                break;
+            }
+            
+            case "END":
+            {
+                System.out.println(gibTextbereich(message));    
+                break;
+            }
+            
+            case "e1":
+            {
+                System.out.println(gibTextbereich(message));
+                break;
+            }
+            
+            case "e2":
+            {
+                System.out.println(gibTextbereich(message));
+                break;
+            }
+            
+            case "e3":
+            {
+                System.out.println(gibTextbereich(message));
+                break;
+            }
+            
             default:
             {
-                // Hier die Fehlerbehandlung implementieren.
+                System.out.println("Befehl falsch. bitte richtigen Befehl eintippen.");
                 break;
             }
         }
