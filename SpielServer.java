@@ -24,8 +24,7 @@ public class SpielServer extends Server {
      */
 
     public void processNewConnection(String pClientIP, int pClientPort){
-        this.send(pClientIP, pClientPort, "CON complete");
-        spieleOnline.append(new Spiel(pClientIP, pClientPort, gibZufallszahl()));
+        this.send(pClientIP, pClientPort, "+OK Verbindung hergestellt");
     }
 
     /**
@@ -36,6 +35,49 @@ public class SpielServer extends Server {
         switch(gibBefehlsbereich(pMessage))
         {
             //Hier muss das Protokoll umgesetzt werden
+            case "STR":
+                {
+                    if(gibTextbereich(pMessage) != "")
+                    {
+                      spieleOnline.append(new Spiel(pClientIP, pClientPort, gibZufallszahl(), gibTextbereich(pMessage))); 
+                      this.send(pClientIP, pClientPort, "+OK Willkommen " + gibTextbereich(pMessage) + ", errate meine Zahl");
+                    }
+                    else
+                    {
+                        this.send(pClientIP, pClientPort, "-E1 Name fehlt");
+                    }
+                    break;
+                }
+            case "RAT":
+                {
+                   if(gibTextbereich(pMessage) != "")
+                   {
+                       int zahl = Integer.parseInt(gibTextbereich(pMessage));
+                       if(zahl == gibZahlVonSpiel(pClientIP))
+                       {
+                           this.send(pClientIP, pClientPort, "TRU Die Zahl war richtig");
+                       }
+                       else if(zahl > 20 || zahl < 0)
+                       {
+                           this.send(pClientIP, pClientPort, " -E2 Die Zahl liegt nicht zwischen 0 und 20");
+                       }
+                       else
+                       {
+                           this.send(pClientIP, pClientPort, "FLS Die zahl war leider falsch");
+                       }
+                   }
+                   else
+                   {
+                       this.send(pClientIP, pClientPort, "-E3 Keine Zahl");
+                   }
+                   break; 
+                }
+            case "GHC":
+                {
+                    this.send(pClientIP, pClientPort, "GHC " + this.generiereStringAusList(DBhighscore.holeZehn()));
+                }
+                
+                
             default:
             {
                 // Hier die Fehlerbehandlung implementieren.
