@@ -12,16 +12,18 @@ public class Spiel
     private int clientPort;
     private int zahl;
     private int versuche;
+    private String name;
 
     /**
      * Konstruktor für Objekte der Klasse Spsieler
      */
-    public Spiel(String clientIP, int clientPort, int zahl)
+    public Spiel(String clientIP, int clientPort, int zahl, String name)
     {
         this.clientIP = clientIP;
         this.clientPort = clientPort;
         this.zahl = zahl;
         this.versuche = 0;
+        this.name = name;
     }
     
     public int gibZahl()
@@ -47,5 +49,10 @@ public class Spiel
     public void erhoeheVeruche()
     {
         versuche = versuche  + 1;
+    }
+    
+    public String gibName()
+    {
+        return name;
     }
 }
