@@ -75,8 +75,14 @@ public class SpielServer extends Server {
             case "GHC":
                 {
                     this.send(pClientIP, pClientPort, "GHC " + this.generiereStringAusList(DBhighscore.holeZehn()));
+                    break;
                 }
-                
+            case "END":
+                {
+                    this.send(pClientIP, pClientPort, "END Tschüss");
+                    closeConnection(pClientIP, pClientPort);
+                    break;
+                }
                 
             default:
             {
@@ -243,7 +249,8 @@ public class SpielServer extends Server {
         String ausgabe = null;
         l.toFirst();
         while(l.hasAccess()){
-            ausgabe = ausgabe + l.getContent().gibName() + ":" + l.getContent().gibPunkte(). + " ";
+            ausgabe = ausgabe + l.getContent().gibName() + ":" + l.getContent().gibPunkte() + " ";
         }
+        return ausgabe;
     }
 }
