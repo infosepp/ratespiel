@@ -97,7 +97,7 @@ public class SpielServer extends Server {
      * Diese Methode der Server-Klasse wird hiermit ueberschrieben.
      * Die Verbindung wird beendet und aus der Liste der Clients gestrichen.
      */
-    public void processCloseConnection(String pClientIP, int pClientPort){
+    public void processClosingConnection(String pClientIP, int pClientPort){
         this.send(pClientIP, pClientPort, "EXT complete");
         this.closeConnection(pClientIP, pClientPort);
     }
@@ -107,7 +107,7 @@ public class SpielServer extends Server {
      */
     public static void main(String [] args)
     {
-        SpielServer es = new SpielServer(1024);
+        SpielServer es = new SpielServer(2222);
     }
 
     /**

@@ -1,1 +1,90 @@
- import java.io.*;import java.net.*;/**Eine Connection ist ein Socket, der eine vereinfachte Ein- und Ausgabe bietet.<br>Die Verbindung ist nicht nebenl&auml;ufig realisiert.<br>Da sie eine Unterklasse von Thread ist, k&ouml;nnen Unterklassen der Verbindung nebenl&auml;ufig arbeiten.@author Horst Hildebrecht@version 1.0 vom 16.08.2006*/public class Connection extends Thread{    private class PrintlnStream extends PrintStream    {        public PrintlnStream(OutputStream out, boolean autoflush)        {            super(out, autoflush);        }            public void println (String s)        {            this.print(s + "\r\n");        }            public void println ()        {            this.print("\r\n");        }    }    //Objektbeziehungen    private Socket hatSocket; // Besser waere eine Unterklasse. Wegen des noetigen super-Aufrufs in try nicht moeglich!    private BufferedReader hatEingabe;    private PrintlnStream hatAusgabe;        // Attribute    protected boolean zVerbindungAktiv; // Nur fuer Unterklassen, die echte Threads sind (ServerVerbindung)    private String zPartnerAdresse;    private int zPartnerPort;    protected Connection(){} // nur aus formalen Gruenden noetig            /**    Die Verbindung ist mit Ein- und Ausgabestreams initialisiert.    @param pSocket Socket, der die Verbindung beschreibt    @param pTestModus Wenn true, werden bei jeder Operation Meldungen auf der Konsole ausgegeben.    */    protected Connection(Socket pSocket)    {        this.erstelleVerbindung(pSocket);    }        /**    Die Verbindung ist mit Ein- und Ausgabestreams initialisiert.    @param pIPAdresse IP-Adresse bzw. Domain des Partners    @param pPortNr Portnummer des Sockets    */    public Connection(String pIPAdresse, int pPortNr)    {        try        {            this.erstelleVerbindung(new Socket(pIPAdresse, pPortNr));        }                catch (Exception pFehler)        {            hatSocket = null;            System.err.println("Fehler beim \u00D6ffnen von Socket: " + pFehler);        }           }        /**    Die Verbindung ist mit Ein- und Ausgabestreams initialisiert.    @param pSocket Socket, der die Verbindung beschreibt    */    protected void erstelleVerbindung(Socket pSocket)    {        hatSocket = pSocket;        zVerbindungAktiv = true;                try        {            // Den Eingabe- und Ausgabestream holen            hatEingabe = new BufferedReader(new InputStreamReader(hatSocket.getInputStream()));            hatAusgabe = new PrintlnStream(hatSocket.getOutputStream(), true);            zPartnerAdresse = this.verbindungsSocket().getInetAddress().toString();            zPartnerAdresse = zPartnerAdresse.substring(zPartnerAdresse.indexOf('/') + 1);        zPartnerPort = this.verbindungsSocket().getPort();        }          catch (Exception pFehler)        {            System.err.println("Fehler beim Erzeugen der Streams der Verbindung: " + pFehler);        }            }    public String toString()    {        return "Verbindung mit Socket: " + hatSocket;    }        /**    Ein Text wurde in den Ausgabestream geschrieben.    @param pNachricht Text, der geschrieben werden soll    */    public void send(String pMessage)    {        try        {            hatAusgabe.println(pMessage);         }        catch (Exception pFehler)        {            System.err.println("Fehler beim Schreiben in der Verbindung: " + pFehler);        }                            }         /**    Ein Text des Eingabestreams wurde geliefert.    */    public String receive()    {        String lEingabe = null;        try        {            lEingabe = hatEingabe.readLine();        }        catch (Exception pFehler)        {            if (zVerbindungAktiv)                System.err.println("Fehler beim Lesen in der Verbindung: " + pFehler);        }                                        return lEingabe;    }      /**  Die IP-Nummer des Partners wurde geliefert.  */  protected String partnerAdresse()  {    return zPartnerAdresse;  }    /**  Der Port des Partners wurde geliefert.  */  protected int partnerPort()  {    return zPartnerPort;  }  /**    Der Socket der Verbindung wurde geliefert.    */    protected Socket verbindungsSocket()    {        return hatSocket;    }        /**    Die Verbindung wurde mit Ein- und Ausgabestreams geschlossen.    */    public void close()    {        zVerbindungAktiv = false;                try        {            // Die Streams und den Socket schliessen            hatEingabe.close(); hatEingabe = null;            hatAusgabe.close(); hatAusgabe = null;            hatSocket.close(); hatSocket = null;         }        catch (Exception pFehler)        {            System.err.println("Fehler beim Schlie\u00DFen der Verbindung: " + pFehler);        }    }        }
+/**
+ * <p>
+ * Materialien zu den zentralen NRW-Abiturpruefungen im Fach Informatik ab 2018
+ * </p>
+ * <p>
+ * Klasse Connection
+ * </p>
+ * <p>
+ * Objekte der Klasse Connection ermoeglichen eine Netzwerkverbindung zu einem
+ * Server mittels TCP/IP-Protokoll. Nach Verbindungsaufbau koennen Zeichenketten
+ * (Strings) zum Server gesendet und von diesem empfangen werden. Zur
+ * Vereinfachung geschieht dies zeilenweise, d. h., beim Senden einer
+ * Zeichenkette wird ein Zeilentrenner ergaenzt und beim Empfang wird dieser
+ * entfernt. Es findet nur eine rudimentaere Fehlerbehandlung statt, so dass z.B.
+ * der Zugriff auf unterbrochene oder bereits getrennte Verbindungen nicht zu
+ * einem Programmabbruch fuehrt. Eine einmal getrennte Verbindung kann nicht
+ * reaktiviert werden.
+ * </p>
+ *
+ * @author Qualitaets- und UnterstuetzungsAgentur - Landesinstitut fuer Schule
+ * @version 30.08.2016
+ */
+
+import java.net.*;
+import java.io.*;
+
+public class Connection
+{
+    private Socket socket;
+    private BufferedReader fromServer;
+    private PrintWriter toServer;
+
+    public Connection(String pServerIP, int pServerPort)
+    {       
+        try
+        {
+            socket = new Socket(pServerIP, pServerPort);
+            toServer = new PrintWriter(socket.getOutputStream(), true);
+            fromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        }
+        catch (Exception e)
+        {
+            //Erstelle eine nicht-verbundene Instanz von Socket, wenn die avisierte
+            //Verbindung nicht hergestellt werden kann
+            socket = null;
+            toServer = null;
+            fromServer = null;
+        }
+    }
+
+    public String receive()
+    {
+        if(fromServer != null)
+            try
+            {
+                return fromServer.readLine();
+            }
+            catch (IOException e)
+            {
+            }
+        return(null);
+    }
+
+    public void send(String pMessage)
+    {
+        if(toServer != null)
+        {
+            toServer.println(pMessage);
+         }
+    }
+
+    public void close()
+    {
+
+        if(socket != null && !socket.isClosed())
+            try
+            {
+                socket.close();
+            }
+            catch (IOException e)
+            {
+                /*
+                 * Falls eine Verbindung geschlossen werden soll, deren Endpunkt nicht
+                 * mehr existiert bzw. seinerseits bereits geschlossen worden ist oder
+                 * die nicht korrekt instanziiert werden konnte (socket == null), geschieht
+                 * nichts.
+                 */
+            }
+    }
+}
