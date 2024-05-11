@@ -107,7 +107,7 @@ public class SpielServer extends Server {
      */
     public static void main(String [] args)
     {
-        SpielServer es = new SpielServer(2222);
+        SpielServer es = new SpielServer(2000);
     }
 
     /**
