@@ -1,121 +1,161 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+
 /**
-Ein Client kann &uuml;ber das Netz die Verbindung zu einem Server herstellen.<br>
-Fehlermeldungen werden ausgegeben.<br>
-Die Eingaben werden nebenl&auml;ufig verarbeitet.
-@author Horst Hildebrecht
-@version 1.0 vom 16.08.2006
-*/
+ * <p>
+ * Materialien zu den zentralen NRW-Abiturpruefungen im Fach Informatik ab 2018
+ * </p>
+ * <p>
+ * Klasse Client
+ * </p>
+ * <p>
+ * Objekte von Unterklassen der abstrakten Klasse Client ermoeglichen
+ * Netzwerkverbindungen zu einem Server mittels TCP/IP-Protokoll. Nach
+ * Verbindungsaufbau koennen Zeichenketten (Strings) zum Server gesendet und von
+ * diesem empfangen werden, wobei der Nachrichtenempfang nebenlaeufig geschieht. 
+ * Zur Vereinfachung finden Nachrichtenversand und -empfang zeilenweise statt,
+ * d. h., beim Senden einer Zeichenkette wird ein Zeilentrenner ergaenzt und beim
+ * Empfang wird dieser entfernt. Jede empfangene Nachricht wird einer
+ * Ereignisbehandlungsmethode uebergeben, die in Unterklassen implementiert werden
+ * muss. Es findet nur eine rudimentaere Fehlerbehandlung statt, so dass z.B.
+ * Verbindungsabbrueche nicht zu einem Programmabbruch fuehren. Eine einmal
+ * unterbrochene oder getrennte Verbindung kann nicht reaktiviert werden.
+ * </p>
+ * 
+ * @author Qualitaets- und UnterstuetzungsAgentur - Landesinstitut fuer Schule
+ * @version 30.08.2016
+ */
+
 public abstract class Client
 {
+    private MessageHandler messageHandler;
 
-    //Objektbeziehungen
-    private Connection hatVerbindung;
-    private Clientempfaenger hatEmpfaenger;
-     
-    /**
-    Hilfsklasse fuer den Client, die in einem eigenen Thread den Empfang einer Nachricht vom Server realisiert.
-    @author Horst Hildebrecht
-    @version 1.0 vom 15.06.2006
-    */
-    class Clientempfaenger extends Thread
+    private class MessageHandler extends Thread
     {
-        // Objekte
-        private Client kenntClient;
-        private Connection kenntVerbindung;
-        
-        // Attribute
-        private boolean zVerbindungAktiv;
-    
-        /**
-        Der ClientEmpfaenger hat den zugeh&ouml;rigen Client und die zugeh&ouml;rige Connection kennen gelernt.<br>
-        @param pClient zugeh&ouml;riger Client, der die einkommenden Nachrichten bearbeitet
-        @param pConnection zugeh&ouml;rige Connection, die die einkommenden Nachrichten empfaengt
-        */
-        public Clientempfaenger(Client pClient, Connection pConnection)
+        private SocketWrapper socketWrapper;
+        private boolean active;
+       
+        private class SocketWrapper
         {
-            kenntClient = pClient;
-            kenntVerbindung = pConnection;
-            zVerbindungAktiv = true;
+            private Socket socket;
+            private BufferedReader fromServer;
+            private PrintWriter toServer;
+
+            public SocketWrapper(String pServerIP, int pServerPort)
+            {
+                try
+                {
+                	socket = new Socket(pServerIP, pServerPort);
+                    toServer = new PrintWriter(socket.getOutputStream(), true);
+                    fromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                }
+                catch (IOException e) 
+                {
+                    socket = null;
+                    toServer = null;
+                    fromServer = null;
+                }
+            }
+
+            public String receive()
+            {
+                if(fromServer != null)
+                    try
+                    {
+                        return fromServer.readLine();
+                    }
+                    catch (IOException e)
+                    {
+                    }
+                return(null);
+            }
+
+            public void send(String pMessage)
+            {
+                if(toServer != null)
+                {
+                    toServer.println(pMessage);
+                }
+            }
+
+            public void close()
+            {
+                if(socket != null)
+                    try
+                    {
+                        socket.close();
+                    }
+                    catch (IOException e)
+                    {
+                        /*
+                         * Falls eine Verbindung getrennt werden soll, deren Endpunkt
+                         * nicht mehr existiert bzw. ihrerseits bereits beendet worden ist,
+                         * geschieht nichts.
+                         */
+                    }
+            }
         }
         
-        /**
-        Solange der Server Nachrichten sendete, wurden diese empfangen und an die ClientVerbinedung weitergereicht.
-        */
+        private MessageHandler(String pServerIP, int pServerPort)
+        {
+            socketWrapper = new SocketWrapper(pServerIP, pServerPort);
+            start();
+            if(socketWrapper.socket != null)
+            	active = true;
+        }
+
         public void run()
         {
-            String lNachricht;
-            boolean lNachrichtEmpfangen = true;
-            
-            do
-                if (zVerbindungAktiv)
-                {
-                    lNachricht = kenntVerbindung.receive();
-                    lNachrichtEmpfangen = (lNachricht != null);
-                    if (lNachrichtEmpfangen)
-                        kenntClient.processMessage(lNachricht); 
-                }
-            while (zVerbindungAktiv && lNachrichtEmpfangen);
-        }
-        
-        /**
-        Der ClientEmpfaenger arbeitet nicht mehr
-        */
-        public void gibFrei()
-        {
-            zVerbindungAktiv = false;
-        }
-        
-    }
-    
-    
-    /**
-    Der Client ist mit Ein- und Ausgabestreams initialisiert.<br>
-    @param pIPAdresse IP-Adresse bzw. Domain des Servers
-    @param pPortNr Portnummer des Sockets
-    */
-    public Client(String pIPAdresse, int pPortNr)
-    {
-        hatVerbindung = new Connection(pIPAdresse, pPortNr);
-        
-        try
-        {
-            hatEmpfaenger = new Clientempfaenger(this, hatVerbindung);
-            hatEmpfaenger.start();
+            String message = null;
+            while (active)
+            {
+                message = socketWrapper.receive();
+                if (message != null)
+                    processMessage(message);
+                else
+                    close();
+            }
         }
 
-        catch (Exception pFehler)
+        private void send(String pMessage)
         {
-            System.err.println("Fehler beim \u00D6ffnen des Clients: " + pFehler);
-        }       
-         
+            if(active)
+                socketWrapper.send(pMessage);
+        }
+
+        private void close()
+        {
+            if(active)
+            {
+                active = false;
+                socketWrapper.close();
+            }
+        }
+    }
+
+    public Client(String pServerIP, int pServerPort)
+    {
+        messageHandler = new MessageHandler(pServerIP, pServerPort);
+    }
+
+    public boolean isConnected()
+    {
+   		return(messageHandler.active);
     }
     
     public void send(String pMessage)
     {
-        hatVerbindung.send(pMessage);
-    }
-
-    public String toString()
-    {
-        return "Verbindung mit Socket: " + hatVerbindung.verbindungsSocket();
+        messageHandler.send(pMessage);
     }
     
-    /**
-     Eine Nachricht vom Server wurde bearbeitet.<br>
-     Diese abstrakte Methode muss in Unterklassen &uuml;berschrieben werden.
-     @param pNachricht die empfangene Nachricht, die bearbeitet werden soll
-    */
-    public abstract void processMessage(String pMessage);
-
-    /**
-    Die Verbindung wurde mit Ein- und Ausgabestreams geschlossen.
-    */
     public void close()
     {
-        if (hatEmpfaenger != null)
-            hatEmpfaenger.gibFrei();
-        hatEmpfaenger = null;
-        hatVerbindung.close();
+        messageHandler.close();
     }
+
+    public abstract void processMessage(String pMessage);
 
 }
