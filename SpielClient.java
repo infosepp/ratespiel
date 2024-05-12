@@ -68,7 +68,7 @@ public class SpielClient extends Client {
             
             default:
             {
-                System.out.println("Befehl falsch. bitte richtigen Befehl eintippen.");
+                System.out.println("Befehl falsch. Bitte richtigen Befehl eintippen.");
                 break;
             }
         }

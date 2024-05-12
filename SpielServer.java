@@ -86,7 +86,7 @@ public class SpielServer extends Server {
                 
             default:
             {
-                // Hier die Fehlerbehandlung implementieren.
+                this.send(pClientIP, pClientPort, "-E0 Falsche Angaben"); 
                 break;
             }
         }
