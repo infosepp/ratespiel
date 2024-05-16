@@ -56,6 +56,8 @@ public class SpielServer extends Server {
                        if(zahl == gibZahlVonSpiel(pClientIP))
                        {
                            this.send(pClientIP, pClientPort, "TRU Die Zahl war richtig");
+                           versucheErhoehenVonSpiel(pClientIP);
+                           DBhighscore.hinzufuegen(this.gibNameVonSpiel(pClientIP), this.gibVersucheVonSpiel(pClientIP));
                        }
                        else if(zahl > 20 || zahl < 0)
                        {
@@ -64,6 +66,7 @@ public class SpielServer extends Server {
                        else
                        {
                            this.send(pClientIP, pClientPort, "FLS Die zahl war leider falsch");
+                           versucheErhoehenVonSpiel(pClientIP);
                        }
                    }
                    else
