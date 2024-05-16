@@ -176,7 +176,7 @@ public class SpielServer extends Server {
     {
         spieleOnline.toFirst();
         while (spieleOnline.hasAccess()) {
-            if (spieleOnline.getContent().gibClientIP() == pClientIP) {
+            if (spieleOnline.getContent().gibClientIP().equals(pClientIP)) {
                 return spieleOnline.getContent().gibVersuche();
             } else {
                 spieleOnline.next();
@@ -227,7 +227,7 @@ public class SpielServer extends Server {
     {
         spieleOnline.toFirst();
         while (spieleOnline.hasAccess()) {
-            if (spieleOnline.getContent().gibClientIP() == pClientIP) {
+            if (spieleOnline.getContent().gibClientIP().equals(pClientIP)) {
                 return spieleOnline.getContent().gibName();
             } else {
                 spieleOnline.next();
