@@ -248,7 +248,7 @@ public class SpielServer extends Server {
      */
     private String generiereStringAusList(List<Eintrag> l)
     {
-        String ausgabe = null;
+        String ausgabe = "";
         l.toFirst();
         while(l.hasAccess()){
             ausgabe = ausgabe + l.getContent().gibName() + ":" + l.getContent().gibPunkte() + " ";
