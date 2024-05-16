@@ -65,7 +65,7 @@ public class SpielServer extends Server {
                        }
                        else
                        {
-                           this.send(pClientIP, pClientPort, "FLS Die zahl war leider falsch");
+                           this.send(pClientIP, pClientPort, "FLS Die Zahl war leider falsch");
                            versucheErhoehenVonSpiel(pClientIP);
                        }
                    }
@@ -144,12 +144,7 @@ public class SpielServer extends Server {
     private synchronized String gibTextbereich(String message)
     {
         String [] messageArray = message.split(" ");
-        String text = "";
-        for(int i = 1; i < messageArray.length; i++)
-        {
-            text = text+" "+ messageArray[i];
-        }
-        return text;
+        return messageArray[1];
     }
     
     /**
@@ -161,7 +156,7 @@ public class SpielServer extends Server {
     {
         spieleOnline.toFirst();
         while (spieleOnline.hasAccess()) {
-            if (spieleOnline.getContent().gibClientIP() == pClientIP) {
+            if (spieleOnline.getContent().gibClientIP().equals(pClientIP)) {
                 return spieleOnline.getContent().gibZahl();
             } else {
                 spieleOnline.next();
@@ -196,7 +191,7 @@ public class SpielServer extends Server {
     {
         spieleOnline.toFirst();
         while(spieleOnline.hasAccess()){
-            if (spieleOnline.getContent().gibClientIP() == pClientIP){
+            if (spieleOnline.getContent().gibClientIP().equals(pClientIP)){
                 spieleOnline.getContent().erhoeheVeruche();
                 break;
             }
@@ -255,6 +250,7 @@ public class SpielServer extends Server {
         l.toFirst();
         while(l.hasAccess()){
             ausgabe = ausgabe + l.getContent().gibName() + ":" + l.getContent().gibPunkte() + " ";
+            l.next();
         }
         return ausgabe;
     }

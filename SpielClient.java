@@ -38,7 +38,7 @@ public class SpielClient extends Client {
                 
             case "GHC":
             {
-                highscorelisteDrucken(message);
+                System.out.println(message);
                 break;
             }
             
