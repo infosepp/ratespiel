@@ -179,7 +179,7 @@ public class SpielServer extends Server {
     {
         spieleOnline.toFirst();
         while (spieleOnline.hasAccess()) {
-            if (spieleOnline.getContent().gibClientIP() == pClientIP) {
+            if (spieleOnline.getContent().gibClientIP().equals(pClientIP)) {
                 return spieleOnline.getContent().gibVersuche();
             } else {
                 spieleOnline.next();
@@ -198,6 +198,7 @@ public class SpielServer extends Server {
         while(spieleOnline.hasAccess()){
             if (spieleOnline.getContent().gibClientIP() == pClientIP){
                 spieleOnline.getContent().erhoeheVeruche();
+                break;
             }
             else{
                 spieleOnline.next();
@@ -213,8 +214,9 @@ public class SpielServer extends Server {
     {
         spieleOnline.toFirst();
         while (spieleOnline.hasAccess()) {
-            if (spieleOnline.getContent().gibClientIP() == pClientIP) {
+            if (spieleOnline.getContent().gibClientIP().equals(pClientIP)) {
                 spieleOnline.remove();
+                break;
             } else {
                 spieleOnline.next();
             }
@@ -230,7 +232,7 @@ public class SpielServer extends Server {
     {
         spieleOnline.toFirst();
         while (spieleOnline.hasAccess()) {
-            if (spieleOnline.getContent().gibClientIP() == pClientIP) {
+            if (spieleOnline.getContent().gibClientIP().equals(pClientIP)) {
                 return spieleOnline.getContent().gibName();
             } else {
                 spieleOnline.next();
@@ -249,7 +251,7 @@ public class SpielServer extends Server {
      */
     private String generiereStringAusList(List<Eintrag> l)
     {
-        String ausgabe = null;
+        String ausgabe = "";
         l.toFirst();
         while(l.hasAccess()){
             ausgabe = ausgabe + l.getContent().gibName() + ":" + l.getContent().gibPunkte() + " ";
