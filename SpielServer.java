@@ -196,6 +196,7 @@ public class SpielServer extends Server {
         while (spieleOnline.hasAccess()) {
             if (spieleOnline.getContent().gibClientIP().equals(pClientIP)) {
                 spieleOnline.remove();
+                break;
             } else {
                 spieleOnline.next();
             }

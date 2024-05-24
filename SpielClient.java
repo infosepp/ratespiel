@@ -38,7 +38,7 @@ public class SpielClient extends Client {
                 
             case "GHC":
             {
-                highscorelisteDrucken(message);
+                System.out.println(message);
                 break;
             }
             
@@ -48,19 +48,19 @@ public class SpielClient extends Client {
                 break;
             }
             
-            case "e1":
+            case "-E1":
             {
                 System.out.println(gibTextbereich(message));
                 break;
             }
             
-            case "e2":
+            case "-E2":
             {
                 System.out.println(gibTextbereich(message));
                 break;
             }
             
-            case "e3":
+            case "-E3":
             {
                 System.out.println(gibTextbereich(message));
                 break;
