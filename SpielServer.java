@@ -11,11 +11,12 @@ public class SpielServer extends Server {
 
     private HighscoreGateway DBhighscore;
     private List<Spiel> spieleOnline; 
-    
+
     public SpielServer(int p) {
         super(p);
         DBhighscore = new HighscoreGateway();
-        spieleOnline = new List<>();
+        DBhighscore.erzeugeTabelle();
+        spieleOnline = new List<Spiel>();
     }
 
     /**
@@ -32,15 +33,15 @@ public class SpielServer extends Server {
      * Der angemeldete Client bekommt die gesendete Meldung zurueckgeschickt.
      */
     public void processMessage(String pClientIP, int pClientPort, String pMessage){ 
-        switch(gibBefehlsbereich(pMessage))
+        switch(gibBereich(pMessage,0))
         {
-            //Hier muss das Protokoll umgesetzt werden
+                //Hier muss das Protokoll umgesetzt werden
             case "STR":
                 {
-                    if(gibTextbereich(pMessage) != "")
+                    if(gibBereich(pMessage,1) != "")
                     {
-                      spieleOnline.append(new Spiel(pClientIP, pClientPort, gibZufallszahl(), gibTextbereich(pMessage))); 
-                      this.send(pClientIP, pClientPort, "+OK Willkommen " + gibTextbereich(pMessage) + ", errate meine Zahl");
+                        spieleOnline.append(new Spiel(pClientIP, pClientPort, gibZufallszahl(), gibBereich(pMessage,1))); 
+                        this.send(pClientIP, pClientPort, "+OK Willkommen " + gibBereich(pMessage,1) + ", errate meine Zahl");
                     }
                     else
                     {
@@ -50,27 +51,29 @@ public class SpielServer extends Server {
                 }
             case "RAT":
                 {
-                   if(gibTextbereich(pMessage) != "")
-                   {
-                       int zahl = Integer.parseInt(gibTextbereich(pMessage));
-                       if(zahl == gibZahlVonSpiel(pClientIP))
-                       {
-                           this.send(pClientIP, pClientPort, "TRU Die Zahl war richtig");
-                       }
-                       else if(zahl > 20 || zahl < 0)
-                       {
-                           this.send(pClientIP, pClientPort, " -E2 Die Zahl liegt nicht zwischen 0 und 20");
-                       }
-                       else
-                       {
-                           this.send(pClientIP, pClientPort, "FLS Die zahl war leider falsch");
-                       }
-                   }
-                   else
-                   {
-                       this.send(pClientIP, pClientPort, "-E3 Keine Zahl");
-                   }
-                   break; 
+                    if(gibBereich(pMessage,1) != "")
+                    {
+                        int zahl = Integer.parseInt(gibBereich(pMessage,1));
+                        if(zahl == gibZahlVonSpiel(pClientIP))
+                        {
+                            this.send(pClientIP, pClientPort, "TRU Die Zahl war richtig");
+                            this.DBhighscore.hinzufuegen(gibNameVonSpiel(pClientIP), gibVersucheVonSpiel(pClientIP));
+                        }
+                        else if(zahl > 20 || zahl < 0)
+                        {
+                            this.send(pClientIP, pClientPort, " -E2 Die Zahl liegt nicht zwischen 0 und 20");
+                        }
+                        else
+                        {
+                            this.send(pClientIP, pClientPort, "FLS Die zahl war leider falsch");
+                        }
+                        versucheErhoehenVonSpiel(pClientIP);
+                    }
+                    else
+                    {
+                        this.send(pClientIP, pClientPort, "-E3 Keine Zahl");
+                    }
+                    break; 
                 }
             case "GHC":
                 {
@@ -83,12 +86,12 @@ public class SpielServer extends Server {
                     closeConnection(pClientIP, pClientPort);
                     break;
                 }
-                
+
             default:
-            {
-                this.send(pClientIP, pClientPort, "-E0 Falsche Angaben"); 
-                break;
-            }
+                {
+                    this.send(pClientIP, pClientPort, "-E0 Falsche Angaben"); 
+                    break;
+                }
         }
 
     }
@@ -101,7 +104,7 @@ public class SpielServer extends Server {
         this.send(pClientIP, pClientPort, "EXT complete");
         this.closeConnection(pClientIP, pClientPort);
     }
-    
+
     /**
      * Main-Methode die den Server auf Port 1024 startet.
      */
@@ -118,18 +121,6 @@ public class SpielServer extends Server {
     {
         return (int)(Math.random() * 20);
     }
-    
-    /**
-     * Diese Methode gibt den Befehl zurück die die message beinhaltet
-     * 
-     * @param message
-     * 
-     * @return Befehl
-     */
-    private synchronized String gibBefehlsbereich(String message)
-    {
-        return message.split(" ")[0];
-    }
 
     /**
      * Diese Methode gibt den Text zurück die die message beinhaltet
@@ -138,17 +129,11 @@ public class SpielServer extends Server {
      * 
      * @return Text
      */
-    private synchronized String gibTextbereich(String message)
+    private synchronized String gibBereich(String message, int pos)
     {
-        String [] messageArray = message.split(" ");
-        String text = "";
-        for(int i = 1; i < messageArray.length; i++)
-        {
-            text = text+" "+ messageArray[i];
-        }
-        return text;
+        return message.split(" ")[pos];
     }
-    
+
     /**
      * Methode, die die zu erratende Zahl vom Spiel mit der übergebenen ClientIP zurück gibt.
      * @param pClientIP
@@ -158,7 +143,7 @@ public class SpielServer extends Server {
     {
         spieleOnline.toFirst();
         while (spieleOnline.hasAccess()) {
-            if (spieleOnline.getContent().gibClientIP() == pClientIP) {
+            if (spieleOnline.getContent().gibClientIP().equals(pClientIP)) {
                 return spieleOnline.getContent().gibZahl();
             } else {
                 spieleOnline.next();
@@ -166,7 +151,7 @@ public class SpielServer extends Server {
         }
         return -1;
     }
-    
+
     /**
      * Methode, die die Anzahl der bisherigen Versuche vom Spiel mit der übergebenen ClientIP zurück gibt.
      * @param pClientIP
@@ -176,7 +161,7 @@ public class SpielServer extends Server {
     {
         spieleOnline.toFirst();
         while (spieleOnline.hasAccess()) {
-            if (spieleOnline.getContent().gibClientIP() == pClientIP) {
+            if (spieleOnline.getContent().gibClientIP().equals(pClientIP)) {
                 return spieleOnline.getContent().gibVersuche();
             } else {
                 spieleOnline.next();
@@ -184,7 +169,7 @@ public class SpielServer extends Server {
         }
         return -1;
     }
-    
+
     /**
      * Methode, die beim Spiel mit der übergebenen Client-IP, die Versuche um 1 erhöht.
      * @param pClientIP
@@ -193,15 +178,14 @@ public class SpielServer extends Server {
     {
         spieleOnline.toFirst();
         while(spieleOnline.hasAccess()){
-            if (spieleOnline.getContent().gibClientIP() == pClientIP){
+            if (spieleOnline.getContent().gibClientIP().equals(pClientIP)){
                 spieleOnline.getContent().erhoeheVeruche();
+                spieleOnline.toLast();
             }
-            else{
-                spieleOnline.next();
-            }
+            spieleOnline.next();
         }
     }
-    
+
     /**
      * Methode, die das Spiel mit der übergebenen Client-IP, löscht
      * @param pClientIP
@@ -210,14 +194,14 @@ public class SpielServer extends Server {
     {
         spieleOnline.toFirst();
         while (spieleOnline.hasAccess()) {
-            if (spieleOnline.getContent().gibClientIP() == pClientIP) {
+            if (spieleOnline.getContent().gibClientIP().equals(pClientIP)) {
                 spieleOnline.remove();
             } else {
                 spieleOnline.next();
             }
         }
     }
-    
+
     /**
      * Methode, die den Spielernamen für die übergebene ClientIP zurück gibt.
      * @param pClientIP
@@ -227,7 +211,7 @@ public class SpielServer extends Server {
     {
         spieleOnline.toFirst();
         while (spieleOnline.hasAccess()) {
-            if (spieleOnline.getContent().gibClientIP() == pClientIP) {
+            if (spieleOnline.getContent().gibClientIP().equals(pClientIP)) {
                 return spieleOnline.getContent().gibName();
             } else {
                 spieleOnline.next();
@@ -235,7 +219,7 @@ public class SpielServer extends Server {
         }
         return "Fehler!";
     }
-    
+
     /**
      * Diese Methode generiert einen String aus den Einträgen der übergebenen Liste.
      * Dabei beachtet man das folgende Format:
@@ -246,10 +230,11 @@ public class SpielServer extends Server {
      */
     private String generiereStringAusList(List<Eintrag> l)
     {
-        String ausgabe = null;
+        String ausgabe = "";
         l.toFirst();
         while(l.hasAccess()){
             ausgabe = ausgabe + l.getContent().gibName() + ":" + l.getContent().gibPunkte() + " ";
+            l.next();
         }
         return ausgabe;
     }

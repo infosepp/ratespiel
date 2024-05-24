@@ -114,6 +114,7 @@ public class HighscoreGateway
     {
         verbinde();
         db.executeStatement("INSERT INTO highscore (name, punkte) VALUES ('"+name+"', "+punkte+")");
+        System.out.println(db.getErrorMessage());
         beende();
     }
     
@@ -135,7 +136,7 @@ public class HighscoreGateway
     public void erzeugeTabelle()
     {
          verbinde();
-         db.executeStatement("Create table if not exists highscore (id INTEGER PRIMARY KEY AUTOINCREMENT, name text, punkte int)");
+         db.executeStatement("Create table if not exists highscore (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, punkte INTEGER)");
          beende();
     }
     
